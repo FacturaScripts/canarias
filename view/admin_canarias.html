@@ -102,6 +102,26 @@
       </div>
    </div>
    <div class="row">
+      <form class="form" action="{$fsc->url()}" method="post">
+         <div class="col-sm-4">
+            <div class="form-group">
+               <span class="text-uppercase">Texto de impuestos:</span>
+               <input class="form-control" type="text" name="iva" value="IGIC" autocomplete="off">
+               <p class="help-block">
+                  Puedes cambiarlo desde <a href="index.php?page=admin_home#t_avanzado">Panel de control</a>.
+               </p>
+               <button class="btn btn-sm btn-primary text-right" type="submit" onclick="this.disabled=true;this.form.submit();">
+                  <span class="glyphicon glyphicon-floppy-disk"></span>
+                  <span class="hidden-xs">&nbsp; Guardar</span>
+               </button>
+            </div>
+         </div>
+         <div class="col-sm-4">
+
+         </div>
+      </form>
+   </div>
+   <div class="row">
       <div class="col-sm-12">
          <div class="page-header">
             <h2>

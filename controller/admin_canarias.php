@@ -71,6 +71,41 @@ class admin_canarias extends fs_controller
       {
          $this->check_ejercicio();
          $this->share_extensions();
+         
+
+         /// ¿Guardamos las opciones avanzadas?
+         $guardar = FALSE;
+         foreach($GLOBALS['config2'] as $i => $value)
+         {
+            if( isset($_POST[$i]) )
+            {
+               $GLOBALS['config2'][$i] = $_POST[$i];
+               $guardar = TRUE;
+            }
+         }
+         
+         if($guardar)
+         {
+            $file = fopen('tmp/'.FS_TMP_NAME.'config2.ini', 'w');
+            if($file)
+            {
+               foreach($GLOBALS['config2'] as $i => $value)
+               {
+                  if( is_numeric($value) )
+                  {
+                     fwrite($file, $i." = ".$value.";\n");
+                  }
+                  else
+                  {
+                     fwrite($file, $i." = '".$value."';\n");
+                  }
+               }
+               
+               fclose($file);
+            }
+            
+            $this->new_message('Datos de traducciones guardados correctamente.');
+         }
       }
    }
    
@@ -169,9 +204,9 @@ class admin_canarias extends fs_controller
       
       /// añadimos los de Canarias
       $codimp = array("IGIC7","IGIC3","IGIC0");
-      $desc = array("IGIC 7%","IGIC 5%","IGIC 0%");
+      $desc = array("IGIC 7%","IGIC 3%","IGIC 0%");
       $recargo = 0;
-      $iva = array(19, 5, 0);
+      $iva = array(7, 3, 0);
       $cant = count($codimp);
       for($i=0; $i<$cant; $i++)
       {
