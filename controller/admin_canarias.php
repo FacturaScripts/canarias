@@ -2,6 +2,7 @@
 
 /*
  * This file is part of FacturaScripts
+ * Copyright (C) 2016 Joe Nilson                joenilson@gmail.com
  * Copyright (C) 2017  Francesc Pineda Segarra  francesc.pineda@x-netdigital.com
  *
  * This program is free software: you can redistribute it and/or modify
