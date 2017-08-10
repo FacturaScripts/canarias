@@ -122,6 +122,21 @@
          </a>
          <br/>
       </div>
+      <div class="col-sm-4">
+         {if="$fsc->chat_soporte_ok()"}
+         <a href="{$fsc->url()}&opcion=chat_soporte&status=disable" class="btn btn-block btn-danger">
+            <span class="glyphicon glyphicon-ok"></span> &nbsp;
+            <i class="fa fa-life-ring" aria-hidden="true"></i> &nbsp;
+            Desactivar chat de soporte
+         </a>
+         {else}
+         <a href="{$fsc->url()}&opcion=chat_soporte&status=enable" class="btn btn-block btn-info">
+            <i class="fa fa-life-ring" aria-hidden="true"></i> &nbsp;
+            Activar chat de soporte
+         </a>
+         {/if}
+         <br/>
+      </div>
    </div>
    <div class="row">
       <div class="col-sm-12">
