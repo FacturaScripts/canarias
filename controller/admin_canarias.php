@@ -263,7 +263,7 @@ class admin_canarias extends fs_controller {
      * Activa el chat de soporte en todas las páginas como extensión
      */
     private function activarJsChat() {
-        $items = '<script type="text/javascript" src="plugins/canarias/view/js/chat_soporte.js"></script>';
+        $items = '<script type="text/javascript" src="' . FS_PATH . 'plugins/canarias/view/js/chat_soporte.js"></script>';
 
         $extensions = array(
             array(

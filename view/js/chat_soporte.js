@@ -1,4 +1,4 @@
-<!-- Start of Smartsupp Live Chat script -->
+// Start of Smartsupp Live Chat script
 var _smartsupp = _smartsupp || {};
 _smartsupp.key = 'f691ee6282d7096f75db14a79b5541298283c6d9';
 window.smartsupp||(function(d) {
