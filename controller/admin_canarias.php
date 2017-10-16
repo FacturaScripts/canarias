@@ -217,6 +217,11 @@ class admin_canarias extends fs_controller {
         }
     }
 
+    /**
+     * Devuelve si el chat de soporte está o no activado
+     * 
+     * @return boolean
+     */
     public function chat_soporte_ok() {
         $fsvar = new fs_var();
         $chat_soporte_xnet = (bool) $fsvar->simple_get('chat_soporte_xnet');
@@ -289,13 +294,19 @@ class admin_canarias extends fs_controller {
      * Desactiva el chat de soporte de todas las páginas (requiere cambiar de página para que desaparezca)
      */
     private function desactivarJsChat() {
-        $fsext = new fs_extension();
-        $fsext = $fsext->get('chat_soporte_xnet', __CLASS__);
-        $fsext->delete();
+        $pluginRequireChat = 'plugins/ayuda_soporte_mifactura';
         
-        $fsvar = new fs_var();
-        $fsvar->simple_delete('chat_soporte_xnet');
-        $this->new_message('Chat de soporte desactivado. <a href="'.$this->url().'">Recargar para comprobar que ya no está el chat</a>.');
+        if (file_exists($pluginRequireChat) && is_dir($pluginRequireChat)) {
+            $this->new_error_msg('El chat de soporte no se puede desactivar porque estás hospedado en <a target="_blank" href="https://mifactura.eu">https://mifactura.eu</a> o has contrato nuestro soporte.');
+        } else {
+            $fsext = new fs_extension();
+            $fsext = $fsext->get('chat_soporte_xnet', __CLASS__);
+            $fsext->delete();
+        
+            $fsvar = new fs_var();
+            $fsvar->simple_delete('chat_soporte_xnet');
+            $this->new_message('Chat de soporte desactivado. <a href="'.$this->url().'">Recargar para comprobar que ya no está el chat</a>.');
+        }
     }
     
     /**
