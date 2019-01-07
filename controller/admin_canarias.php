@@ -153,6 +153,10 @@ class admin_canarias extends fs_controller
     {
         $imp0 = new impuesto();
         foreach ($imp0->all() as $i) {
+            if ($i->codimpuesto == 'IGIC7') {
+                return true;
+            }
+            
             if ($i->codimpuesto == 'IGIC6.5') {
                 return true;
             }
