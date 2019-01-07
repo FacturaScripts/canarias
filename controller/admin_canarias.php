@@ -1,9 +1,9 @@
 <?php
-
-/*
- * This file is part of FacturaScripts
- * Copyright (C) 2016 Joe Nilson                joenilson@gmail.com
- * Copyright (C) 2017  Francesc Pineda Segarra  francesc.pineda@x-netdigital.com
+/**
+ * This file is part of canarias plugin for FacturaScripts
+ * Copyright (C) 2016       Joe Nilson                <joenilson@gmail.com>
+ * Copyright (C) 2017       Francesc Pineda Segarra  <francesc.pineda@x-netdigital.com>
+ * Copyright (C) 2016-2019  Carlos García Gómez      <carlos@facturascripts.com>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as
@@ -12,66 +12,69 @@
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
  * GNU Lesser General Public License for more details.
  * 
  * You should have received a copy of the GNU Lesser General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
-
-require_model('ejercicio.php');
-require_model('impuesto.php');
-require_model('subcuenta.php');
 
 /**
  * Description of admin_canarias
  *
  * @author Francesc Pineda Segarra
+ * @author Carlos García Gómez
  */
-class admin_canarias extends fs_controller {
+class admin_canarias extends fs_controller
+{
 
-    public function __construct() {
+    public function __construct()
+    {
         parent::__construct(__CLASS__, 'Canarias', 'admin');
         $this->share_extensions();
     }
 
-    protected function private_core() {
-        $this->checkNewInstallation();
-        
-        if (isset($_GET['opcion'])) {
-            if ($_GET['opcion'] == 'moneda') {
+    protected function private_core()
+    {
+        $opcion = isset($_GET['opcion']) ? $_GET['opcion'] : '';
+        switch ($opcion) {
+            case 'moneda':
                 $this->empresa->coddivisa = 'EUR';
                 if ($this->empresa->save()) {
                     $this->new_message('Datos guardados correctamente.');
                 }
-            } elseif ($_GET['opcion'] == 'pais') {
+                break;
+
+            case 'pais':
                 $this->empresa->codpais = 'ESP';
                 if ($this->empresa->save()) {
                     $this->new_message('Datos guardados correctamente.');
                 }
-            } elseif ($_GET['opcion'] == 'regimenes') {
+                break;
+
+            case 'regimenes':
                 $fsvar = new fs_var();
                 if ($fsvar->simple_save('cliente::regimenes_iva', 'Simplificado,Común,Exento')) {
                     $this->new_message('Datos guardados correctamente.');
                 }
-            } elseif ($_GET['opcion'] == 'impuestos') {
+                break;
+
+            case 'impuestos':
                 $this->set_impuestos();
-            } elseif ($_GET['opcion'] == 'actualizar_config') {
+                break;
+
+            case 'actualizar_config':
                 $this->actualizar_config2();
-            } elseif ($_GET['opcion'] == 'chat_soporte') {
-                if ($_GET['status'] == 'disable') {
-                    $this->desactivarJsChat();
-                } else {
-                    $this->activarJsChat();
-                }
-            }
-        } else {
-            $this->check_menu();
-            $this->check_ejercicio();
+                break;
+
+            default:
+                $this->check_menu();
+                $this->check_ejercicio();
         }
     }
 
-    private function share_extensions() {
+    private function share_extensions()
+    {
         $fsext = new fs_extension();
         $fsext->name = 'impuestos_canarias';
         $fsext->from = __CLASS__;
@@ -82,15 +85,15 @@ class admin_canarias extends fs_controller {
         $fsext->save();
     }
 
-    private function check_menu() {
-
+    private function check_menu()
+    {
         // Limpiamos la cache por si ha habido cambio en la estructura de las tablas
         $this->cache->clean();
 
         if (file_exists(__DIR__)) {
             /// activamos las páginas del plugin
             foreach (scandir(__DIR__) as $f) {
-                if ($f != '.' AND $f != '..' AND is_string($f) AND strlen($f) > 4 AND ! is_dir($f) AND $f != __CLASS__ . '.php') {
+                if ($f != '.' && $f != '..' && is_string($f) && strlen($f) > 4 && !is_dir($f) && $f != __CLASS__ . '.php') {
                     $page_name = substr($f, 0, -4);
 
                     require_once __DIR__ . '/' . $f;
@@ -110,7 +113,8 @@ class admin_canarias extends fs_controller {
         $this->load_menu(TRUE);
     }
 
-    private function check_ejercicio() {
+    private function check_ejercicio()
+    {
         $ej0 = new ejercicio();
         foreach ($ej0->all_abiertos() as $ejercicio) {
             if ($ejercicio->longsubcuenta != 10) {
@@ -124,48 +128,41 @@ class admin_canarias extends fs_controller {
         }
     }
 
-    public function regimenes_ok() {
+    public function regimenes_ok()
+    {
         $fsvar = new fs_var();
         $regimenes = $fsvar->simple_get('cliente::regimenes_iva');
-
-        if ($regimenes == 'Simplificado,Común,Exento') {
-            return TRUE;
-        } else {
-            return FALSE;
-        }
+        return $regimenes == 'Simplificado,Común,Exento';
     }
 
-    public function ejercicio_ok() {
-        $ok = FALSE;
-
+    public function ejercicio_ok()
+    {
         $ej0 = new ejercicio();
         $ejerccio = $ej0->get_by_fecha($this->today());
         if ($ejerccio) {
             $subc0 = new subcuenta();
             foreach ($subc0->all_from_ejercicio($ejerccio->codejercicio) as $sc) {
-                $ok = TRUE;
-                break;
+                return true;
             }
         }
 
-        return $ok;
+        return false;
     }
 
-    public function impuestos_ok() {
-        $ok = FALSE;
-
+    public function impuestos_ok()
+    {
         $imp0 = new impuesto();
         foreach ($imp0->all() as $i) {
-            if ($i->codimpuesto == 'IGIC7') {
-                $ok = TRUE;
-                break;
+            if ($i->codimpuesto == 'IGIC6.5') {
+                return true;
             }
         }
 
-        return $ok;
+        return false;
     }
 
-    private function set_impuestos() {
+    private function set_impuestos()
+    {
         /// eliminamos los impuestos que ya existen (los de España)
         $imp0 = new impuesto();
         foreach ($imp0->all() as $impuesto) {
@@ -174,10 +171,10 @@ class admin_canarias extends fs_controller {
         }
 
         /// añadimos los de Canarias
-        $codimp = array("IGIC7", "IGIC3", "IGIC0");
-        $desc = array("IGIC 7%", "IGIC 3%", "IGIC 0%");
+        $codimp = array("IGIC6.5", "IGIC3", "IGIC0");
+        $desc = array("IGIC 6.5%", "IGIC 3%", "IGIC 0%");
         $recargo = 0;
-        $iva = array(7, 3, 0);
+        $iva = array(6.5, 3, 0);
         $cant = count($codimp);
         for ($i = 0; $i < $cant; $i++) {
             $impuesto = new impuesto();
@@ -192,55 +189,35 @@ class admin_canarias extends fs_controller {
         $this->new_message('Impuestos de Canarias añadidos.');
     }
 
-    private function desvincular_articulos($codimpuesto) {
+    private function desvincular_articulos($codimpuesto)
+    {
         $sql = "UPDATE articulos SET codimpuesto = null WHERE codimpuesto = "
-                . $this->empresa->var2str($codimpuesto) . ';';
+            . $this->empresa->var2str($codimpuesto) . ';';
 
         if ($this->db->table_exists('articulos')) {
             $this->db->exec($sql);
         }
     }
 
-    public function formato_divisa_ok() {
-        if (FS_POS_DIVISA == 'right') {
-            return TRUE;
-        } else {
-            return FALSE;
-        }
+    public function formato_divisa_ok()
+    {
+        return FS_POS_DIVISA == 'right';
     }
 
-    public function nombre_impuesto_ok() {
-        if ($GLOBALS['config2']['iva'] == 'IGIC') {
-            return TRUE;
-        } else {
-            return FALSE;
-        }
+    public function nombre_impuesto_ok()
+    {
+        return $GLOBALS['config2']['iva'] == 'IGIC';
     }
 
-    /**
-     * Devuelve si el chat de soporte está o no activado
-     * 
-     * @return boolean
-     */
-    public function chat_soporte_ok() {
-        $fsvar = new fs_var();
-        $chat_soporte_xnet = (bool) $fsvar->simple_get('chat_soporte_xnet');
-
-        if ($chat_soporte_xnet) {
-            return TRUE;
-        } else {
-            return FALSE;
-        }
-    }
-
-    public function actualizar_config2() {
+    public function actualizar_config2()
+    {
         //Configuramos la información básica para config2.ini
         $guardar = FALSE;
         $config2 = array();
+        
         /* No hace falta indicarlas todas, sólo las diferentes */
         $config2['zona_horaria'] = "Atlantic/Canary";
         $config2['iva'] = "IGIC";
-
         foreach ($GLOBALS['config2'] as $i => $value) {
             if (isset($config2[$i])) {
                 $GLOBALS['config2'][$i] = htmlspecialchars($config2[$i]);
@@ -261,65 +238,6 @@ class admin_canarias extends fs_controller {
                 fclose($file);
             }
             $this->new_message('Datos de configuracion regional guardados correctamente.');
-        }
-    }
-
-    /**
-     * Activa el chat de soporte en todas las páginas como extensión
-     */
-    private function activarJsChat() {
-        $items = '<script type="text/javascript" src="' . FS_PATH . 'plugins/canarias/view/js/chat_soporte.js"></script>';
-
-        $extensions = array(
-            array(
-                'name' => 'chat_soporte_xnet',
-                'page_from' => __CLASS__,
-                'page_to' => NULL,
-                'type' => 'head',
-                'text' => $items,
-                'params' => ''
-            ),
-        );
-        foreach ($extensions as $ext) {
-            $fsext = new fs_extension($ext);
-            $fsext->save();
-        }
-        
-        $fsvar = new fs_var();
-        $fsvar->simple_save('chat_soporte_xnet', TRUE);
-        $this->new_message('Chat de soporte activado.');
-    }
-    
-    /**
-     * Desactiva el chat de soporte de todas las páginas (requiere cambiar de página para que desaparezca)
-     */
-    private function desactivarJsChat() {
-        $pluginRequireChat = 'plugins/ayuda_soporte_mifactura';
-        
-        if (file_exists($pluginRequireChat) && is_dir($pluginRequireChat)) {
-            $this->new_error_msg('El chat de soporte no se puede desactivar porque estás hospedado en <a target="_blank" href="https://mifactura.eu">https://mifactura.eu</a> o has contrato nuestro soporte.');
-        } else {
-            $fsext = new fs_extension();
-            $fsext = $fsext->get('chat_soporte_xnet', __CLASS__);
-            $fsext->delete();
-        
-            $fsvar = new fs_var();
-            $fsvar->simple_delete('chat_soporte_xnet');
-            $this->new_message('Chat de soporte desactivado. <a href="'.$this->url().'">Recargar para comprobar que ya no está el chat</a>.');
-        }
-    }
-    
-    /**
-     * Comprueba si es una instalación nueva, y si lo es, se pre-activa el chat de soporte
-     */
-    private function checkNewInstallation()
-    {
-        $fsvar = new fs_var();
-        $fsvar = $fsvar->simple_get('canarias_instalado');
-        if(!$fsvar) {
-            $fsvar = new fs_var();
-            $fsvar->simple_save('canarias_instalado', TRUE);
-            $this->activarJsChat();
         }
     }
 }
