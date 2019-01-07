@@ -156,7 +156,7 @@ class admin_canarias extends fs_controller
             if ($i->codimpuesto == 'IGIC7') {
                 return true;
             }
-            
+
             if ($i->codimpuesto == 'IGIC6.5') {
                 return true;
             }
@@ -170,6 +170,10 @@ class admin_canarias extends fs_controller
         /// eliminamos los impuestos que ya existen (los de España)
         $imp0 = new impuesto();
         foreach ($imp0->all() as $impuesto) {
+            if (substr($impuesto->codimpuesto, 0, 4) == 'IGIC') {
+                continue;
+            }
+
             $this->desvincular_articulos($impuesto->codimpuesto);
             $impuesto->delete();
         }
@@ -218,7 +222,7 @@ class admin_canarias extends fs_controller
         //Configuramos la información básica para config2.ini
         $guardar = FALSE;
         $config2 = array();
-        
+
         /* No hace falta indicarlas todas, sólo las diferentes */
         $config2['zona_horaria'] = "Atlantic/Canary";
         $config2['iva'] = "IGIC";
